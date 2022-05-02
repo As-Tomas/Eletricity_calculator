@@ -10,6 +10,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,17 +29,13 @@ public class Istorija extends AppCompatActivity {
         SharedPreferences preflist = getSharedPreferences("MyPrefs", MODE_PRIVATE);
         Set<String> forListView2 = preflist.getStringSet("tut", null);
         if(forListView2 == null){
-            //boolean userFirstLogin= preflist.getBoolean("key_name1", true);
-            System.out.println("list is null--------------------------/-----------------------");
-            forListView.add("u");
+            forListView.add("empty");
         } else {
             //konvertuojam kad ListView nuskaitytu
-            ArrayList<String> forListView = new ArrayList<>(forListView2);
-            System.out.println("konvertuojamas listas----------------------------------");
+            forListView = new ArrayList<>(forListView2);
         }
 
-
-
+        //pasiemam kintamuosius
         Intent intent = getIntent();
         String intentSuma = intent.getStringExtra("suma");
         String intentKaina = intent.getStringExtra("kaina");
@@ -45,7 +43,16 @@ public class Istorija extends AppCompatActivity {
         String data = intent.getStringExtra("datenow");
         boolean tikIstorija = intent.getBooleanExtra("tikIstorija", false);
 
+        //sortinam pries atvaizuodami
+        Collections.sort(forListView, new Comparator<String>() {
+            @Override
+            public int compare(String object1, String object2) {
+                return object1.compareTo(object2);
+            }
+        });
+
         if(tikIstorija){
+
             l = findViewById(R.id.list);
             ArrayAdapter<String> arr;
             arr = new ArrayAdapter<String>(
@@ -67,10 +74,11 @@ public class Istorija extends AppCompatActivity {
                     forListView);
             l.setAdapter(arr);
 
-
             //Irasymas
             SharedPreferences.Editor editor = preflist.edit();
-            HashSet<String> hashSet = new HashSet<>(forListView);
+            Set<String> hashSet = new HashSet<>(forListView);
+            hashSet.addAll(forListView);
+            //= new Set<String>(forListView);
             editor.putStringSet("tut",hashSet);
             editor.commit();
         }

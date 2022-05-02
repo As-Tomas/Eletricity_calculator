@@ -34,8 +34,8 @@ public class MainActivity extends AppCompatActivity {
 
         //Nuskaitymas is Preferences
         SharedPreferences pref = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-        float suma=pref.getFloat("suma",-1);
-        float kaina=pref.getFloat("kaina",-1);
+        float suma=pref.getFloat("suma",0);
+        float kaina=pref.getFloat("kaina",0);
 
         //
         if(suma>=0){
