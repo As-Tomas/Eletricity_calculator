@@ -16,41 +16,100 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class FileSaver {
-    private String nameObject;
-    private JSONObject jsonObj;
-    private JSONArray jasonArr;
-    private ArrayList arrayList;
+    private String nameObjects;
+    private JSONObject jasonObjToSave;
+    private ArrayList arrToSave;
+    private JSONArray arrfromFile;
+    private File file;
 
-    public FileSaver() {
+    public FileSaver(File file) {
+        this.file = file;
+        this.arrfromFile = new JSONArray();
     }
 
-    public FileSaver(String nameObject, ArrayList arrToSave) throws JSONException {
-        this.nameObject = nameObject;
-        this.arrayList = arrToSave;
-        this.jasonArr = convertToJasonArr(nameObject,arrToSave);
+    public FileSaver(String nameObjects, ArrayList arrToSave, File file) throws JSONException {
+        this.nameObjects = nameObjects;
+        this.arrToSave = arrToSave;
+        this.jasonObjToSave = convertToJasonObj(nameObjects,arrToSave);
+        this.arrfromFile = new JSONArray();
+        this.file = file;
     }
 
-    public JSONArray convertToJasonArr(String nameObject, ArrayList arr) throws JSONException {
-        JSONArray jArr = new JSONArray();
+    public JSONObject convertToJasonObj(String nameObject, ArrayList arr) throws JSONException {
 
-        for(Object str : arr){
-            JSONObject jObj = new JSONObject();
+        JSONObject jObj = new JSONObject();
 
-            JSONObject values = new JSONObject();
-            values.put("irasas", str);
-            //Log.i("values", str );
+        jObj.put("data",arr.get(0));
+        jObj.put("suma",arr.get(1));
+        jObj.put("kaina", arr.get(2));
+        jObj.put("suvartotaKW", arr.get(3));
+        jObj.put("praejusioMenRodmenys", arr.get(4));
+        jObj.put("dabartinioMenRodmenys", arr.get(5));
 
-            jObj.put(nameObject, values);
+        JSONObject irasas = new JSONObject();
 
-            jArr.put(jObj);
-            Log.i("jArr", jArr.toString());
+        irasas.put("irasas", jObj);
+
+//        JSONArray jArr = new JSONArray();
+//        jArr.put(irasas);
+//        Log.i("jArr", jArr.toString());
+
+
+//
+//        JSONArray jArr = new JSONArray();
+//
+//        for(Object str : arr){
+//            JSONObject jObj = new JSONObject();
+//
+//            JSONObject values = new JSONObject();
+//            values.put("irasas", str);
+//            //Log.i("values", str );
+//
+//            jObj.put(nameObject, values);
+//
+//            jArr.put(jObj);
+//            Log.i("jArr", jArr.toString());
+//        }
+        return irasas;
+    }
+
+    public void readFromFile() throws JSONException {
+
+        String content=null;
+        if(file.exists())
+        {
+            FileReader reader = null;
+            try {
+                reader = new FileReader(file);
+                char[] chars = new char[(int) file.length()];
+                reader.read(chars);
+                content = new String(chars);
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        return jArr;
-    }
+        System.out.println("----------------------------------------------------Failas nuskaitytas--------------------------------------------------------------------------");
+        System.out.println(content);
+
+
+        if(content != null){
+            JSONArray temp = new JSONArray(content);
+
+            for (int i=0; i< temp.length(); i++) {
+                JSONObject jObj = temp.getJSONObject(i);
+                //JSONObject irasasJObj = jObj.getJSONObject("irasas");
+                arrfromFile.put(jObj);
+                Log.i("readFromFile","Success !");
+
+            }
+            System.out.println("kaip atrodo "+arrfromFile );
+        }
+    };
 
 
 
-    public void saveToFile(JSONArray arr, String fileName) throws JSONException {
+    public void saveToFile(JSONArray artosave) throws JSONException {
 
         if(isExternalStorageWritable()){
             try {
@@ -63,19 +122,21 @@ public class FileSaver {
 //            Log.i("Save","Success");
 
                 //second option
-                File file = new File(getFilesDir(), fileName);
+                //File file = new File(getFilesDir(), fileName);
                 FileWriter fw;
                 fw = new FileWriter(file);
-                fw.write(String.valueOf(arr));
+                fw.write(String.valueOf(artosave));
                 //fw.write(adapteris);
                 fw.close();
-                Log.i("Save","Success 2");
+                Log.i("SaveToFile","Success 2");
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
+
 
     /* Check do we can read/write */
     public boolean isExternalStorageWritable() {
@@ -84,6 +145,18 @@ public class FileSaver {
             return true;
         }
         return false;
+    }
+
+    public void updateHistory() throws JSONException {
+        readFromFile();
+        arrfromFile.put(jasonObjToSave);
+        saveToFile(arrfromFile);
+
+    }
+
+    public void clearFile() throws JSONException {
+        JSONArray empty = new JSONArray();
+        saveToFile(empty);
     }
 
 

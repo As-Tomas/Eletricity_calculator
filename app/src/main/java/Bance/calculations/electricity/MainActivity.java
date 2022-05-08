@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.biometrics.BiometricManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -18,9 +19,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,11 +38,13 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = getSharedPreferences("MyPrefs", MODE_PRIVATE);
         float suma=pref.getFloat("suma",0);
         float kaina=pref.getFloat("kaina",0);
+        int dabartiniaiRodmenys= pref.getInt("dabartiniaiRodmenys",0);
 
         //
         if(suma>=0){
             ((TextView)findViewById(R.id.suma)).setText(suma+"");
             ((TextView)findViewById(R.id.kaina)).setText(kaina+"");
+            ((EditText)findViewById(R.id.praejusioMenRodmenys)).setText(dabartiniaiRodmenys+"");
         }
 
         Button skaiciuoti = (Button) findViewById(R.id.skaiciuoti);
@@ -47,10 +53,22 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 EditText buveLaukas = findViewById(R.id.praejusioMenRodmenys);
-                int praejusioMenRodmenys = Integer.parseInt(buveLaukas.getText().toString());
+                int praejusioMenRodmenys = 0;
+                try {
+                    praejusioMenRodmenys = Integer.parseInt(buveLaukas.getText().toString());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(view.getContext(), " Neivestas skaicius " +e, Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
 
                 EditText dabartiniaiLauklas = findViewById(R.id.dabartiniaiRodmenys);
-                int dabartiniaiRodmenys = Integer.parseInt(dabartiniaiLauklas.getText().toString());
+                int dabartiniaiRodmenys = 0;
+                try {
+                    dabartiniaiRodmenys = Integer.parseInt(dabartiniaiLauklas.getText().toString());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(view.getContext(), " Neivestas skaicius " +e, Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
 
                 TextView skyrtumasLaukas = findViewById(R.id.suvartotaKW);
 
@@ -60,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     kaina = Float.parseFloat(kainaLaukas.getText().toString());
                 } catch(NumberFormatException e){
-                    Toast.makeText(view.getContext(), " Neteisingas skaicius " +e, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(view.getContext(), " Neteisingas skaicius " +e, Toast.LENGTH_LONG).show();
                 };
 
                 TextView sumaLaukas = findViewById(R.id.suma);
@@ -80,14 +98,16 @@ public class MainActivity extends AppCompatActivity {
 
                 sumaLaukas.setText("Suma viso: "+suma+" nok");
 
-
                 //Irasymas
                 SharedPreferences pref = getSharedPreferences("MyPrefs", MODE_PRIVATE);
 
                 SharedPreferences.Editor editor = pref.edit();
                 editor.putFloat("suma", suma);
                 editor.putFloat("kaina", kaina);
+                editor.putInt("dabartiniaiRodmenys",dabartiniaiRodmenys);
                 editor.commit();
+
+
             }
         });
 
@@ -101,6 +121,24 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 //issaugojimo data
+                EditText buveLaukas = findViewById(R.id.praejusioMenRodmenys);
+                int praejusioMenRodmenys = 0;
+                try {
+                    praejusioMenRodmenys = Integer.parseInt(buveLaukas.getText().toString());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(v.getContext(), " Neivestas skaicius " +e, Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+
+                EditText dabartiniaiLauklas = findViewById(R.id.dabartiniaiRodmenys);
+                int dabartiniaiRodmenys = 0;
+                try {
+                    dabartiniaiRodmenys = Integer.parseInt(dabartiniaiLauklas.getText().toString());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(v.getContext(), " Neivestas skaicius " +e, Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+
                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
                 LocalDateTime datenow = LocalDateTime.now();
 
@@ -125,18 +163,45 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("tikIstorija", tikIstorija);
                 startActivity(intent);
 
+                //Irasimas i faila
+
+                ArrayList<String> arrList = new ArrayList();
+                arrList.add(dtf.format(datenow).toString());
+                arrList.add(String.valueOf(suma));
+                arrList.add(String.valueOf(kaina));
+                arrList.add(String.valueOf(suvartotaKW));
+                arrList.add(String.valueOf(praejusioMenRodmenys));
+                arrList.add(String.valueOf(dabartiniaiRodmenys));
+
+                File file = new File(getFilesDir(),"record_of_calculations.json");
+                try {
+                    FileSaver fileSaver = new FileSaver("irasas", arrList, file);
+                    fileSaver.updateHistory();
+                    //fileSaver.clearFile();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
-        //----- darau su ne depricated funkcija
 
+        //----- darau su ne depricated funkcija
         Button istorija =(Button) findViewById(R.id.istorija);
         istorija.setOnClickListener(new View.OnClickListener(){
-
+//tik istorija
             @Override
             public void onClick(View v) {
 
                 Intent intent = new Intent(v.getContext(), Istorija.class);
                 intent.putExtra("tikIstorija", true);
+
+                File file = new File(getFilesDir(),"record_of_calculations.json");
+                try {
+                    FileSaver fileSaver = new FileSaver(file);
+                    fileSaver.readFromFile();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
                 startActivity(intent);
             }
         });
