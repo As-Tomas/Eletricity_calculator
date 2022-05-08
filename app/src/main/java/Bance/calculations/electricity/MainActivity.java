@@ -159,9 +159,8 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("suvartotaKW",suvartotaKW);
                 intent.putExtra("kaina", kaina);
                 intent.putExtra("suma",suma);
-                intent.putExtra("datenow", dtf.format(datenow).toString());
+                intent.putExtra("datenow", dtf.format(datenow));
                 intent.putExtra("tikIstorija", tikIstorija);
-                startActivity(intent);
 
                 //Irasimas i faila
 
@@ -181,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                startActivity(intent);
             }
         });
 
@@ -194,13 +194,13 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(v.getContext(), Istorija.class);
                 intent.putExtra("tikIstorija", true);
 
-                File file = new File(getFilesDir(),"record_of_calculations.json");
-                try {
-                    FileSaver fileSaver = new FileSaver(file);
-                    fileSaver.readFromFile();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+//                File file = new File(getFilesDir(),"record_of_calculations.json");
+//                try {
+//                    FileSaver fileSaver = new FileSaver(file);
+//                    fileSaver.readFromFile();
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
 
                 startActivity(intent);
             }

@@ -92,7 +92,6 @@ public class FileSaver {
         System.out.println("----------------------------------------------------Failas nuskaitytas--------------------------------------------------------------------------");
         System.out.println(content);
 
-
         if(content != null){
             JSONArray temp = new JSONArray(content);
 
@@ -106,8 +105,6 @@ public class FileSaver {
             System.out.println("kaip atrodo "+arrfromFile );
         }
     };
-
-
 
     public void saveToFile(JSONArray artosave) throws JSONException {
 
@@ -136,8 +133,6 @@ public class FileSaver {
         }
     }
 
-
-
     /* Check do we can read/write */
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
@@ -152,6 +147,23 @@ public class FileSaver {
         arrfromFile.put(jasonObjToSave);
         saveToFile(arrfromFile);
 
+    }
+
+    public ArrayList readFile() throws JSONException {
+        readFromFile();
+        ArrayList<String> listOfStrings = new ArrayList<>();
+
+        for(int i=0; i<arrfromFile.length(); i++){
+            JSONObject objektas = arrfromFile.getJSONObject(i);
+
+            JSONObject irasas = objektas.getJSONObject("irasas");
+
+            listOfStrings.add(irasas.getString("data")+ "   " +irasas.getString("suma")+
+                    ", kaina: "+irasas.getString("kaina")+", suvartotaKW: "+irasas.getString("suvartotaKW")+
+                    " praejusio menesio rodmenys: "+irasas.getString("praejusioMenRodmenys"));
+        }
+
+        return listOfStrings;
     }
 
     public void clearFile() throws JSONException {

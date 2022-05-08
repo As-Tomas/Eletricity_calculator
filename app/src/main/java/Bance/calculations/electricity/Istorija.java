@@ -5,11 +5,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -32,8 +38,18 @@ public class Istorija extends AppCompatActivity {
             forListView.add("empty");
         } else {
             //konvertuojam kad ListView nuskaitytu
-            forListView = new ArrayList<>(forListView2);
+
+            File file = new File(getFilesDir(),"record_of_calculations.json");
+            try {
+                FileSaver fileSaver = new FileSaver( file);
+                forListView = new ArrayList(fileSaver.readFile());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
         }
+
+        Log.i("Kairp atrodo----------", forListView.toString());
 
         //pasiemam kintamuosius
         Intent intent = getIntent();
@@ -43,13 +59,14 @@ public class Istorija extends AppCompatActivity {
         String data = intent.getStringExtra("datenow");
         boolean tikIstorija = intent.getBooleanExtra("tikIstorija", false);
 
-        //sortinam pries atvaizuodami
+        //sortinam pries atvaizuodami ir reversinam kad nuo naujausiu rodytu
         Collections.sort(forListView, new Comparator<String>() {
             @Override
             public int compare(String object1, String object2) {
                 return object1.compareTo(object2);
             }
         });
+        Collections.reverse(forListView);
 
         if(tikIstorija){
 
@@ -61,7 +78,7 @@ public class Istorija extends AppCompatActivity {
                     forListView);
             l.setAdapter(arr);
         } else {
-            forListView.add(data+" SuvartotaKW: "+intentSuvartotaKW+" Kaina: "+intentKaina+" "+intentSuma);
+            //forListView.add(data+" SuvartotaKW: "+intentSuvartotaKW+" Kaina: "+intentKaina+" "+intentSuma);
 
             TextView antraste = findViewById(R.id.istorija);
             antraste.setText("Si menesi "+intentSuma);
@@ -74,13 +91,13 @@ public class Istorija extends AppCompatActivity {
                     forListView);
             l.setAdapter(arr);
 
-            //Irasymas
-            SharedPreferences.Editor editor = preflist.edit();
-            Set<String> hashSet = new HashSet<>(forListView);
-            hashSet.addAll(forListView);
-            //= new Set<String>(forListView);
-            editor.putStringSet("tut",hashSet);
-            editor.commit();
+//            //Irasymas
+//            SharedPreferences.Editor editor = preflist.edit();
+//            Set<String> hashSet = new HashSet<>(forListView);
+//            hashSet.addAll(forListView);
+//            //= new Set<String>(forListView);
+//            editor.putStringSet("tut",hashSet);
+//            editor.commit();
         }
 
 
