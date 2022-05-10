@@ -3,6 +3,7 @@ package Bance.calculations.electricity;
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -20,19 +21,20 @@ public class FileSaver {
     private JSONObject jasonObjToSave;
     private ArrayList arrToSave;
     private JSONArray arrfromFile;
-    private File file;
+    private Context context;
 
-    public FileSaver(File file) {
-        this.file = file;
+    public FileSaver( Context context) {
         this.arrfromFile = new JSONArray();
+        this.context = context;
     }
 
-    public FileSaver(String nameObjects, ArrayList arrToSave, File file) throws JSONException {
+    public FileSaver(String nameObjects, ArrayList arrToSave, Context context) throws JSONException {
         this.nameObjects = nameObjects;
         this.arrToSave = arrToSave;
         this.jasonObjToSave = convertToJasonObj(nameObjects,arrToSave);
         this.arrfromFile = new JSONArray();
-        this.file = file;
+        this.context = context;
+
     }
 
     public JSONObject convertToJasonObj(String nameObject, ArrayList arr) throws JSONException {
@@ -75,19 +77,45 @@ public class FileSaver {
 
     public void readFromFile() throws JSONException {
 
+//        String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString();
+//        //String root = Environment.getExternalStorageDirectory().toString();
+//        File myDirs = new File(root ); // + "/Elektros_Skaiciavimai"
+//        System.err.println("Permision is give******************************** "+myDirs);
+//        if (!myDirs.exists()) {
+//            myDirs.mkdirs();
+//        }
+//        neveike nes neduoda leidimo File files = new File(root  + "/Elektros_Skaiciavimai","records_of_calculations.txt");
+
+        //sitas veikeFile files = new File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).toString() + "/Elektros_Skaiciavimai/","records_of_calculations.txt");
+
+        String path = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).toString() + "/Elektros_Skaiciavimai"; //nepamirs patikrint katalogus jai veiks
+
+        File files = new File(path ,"records_of_calculations.txt");
         String content=null;
-        if(file.exists())
+        if(files.exists())
         {
             FileReader reader = null;
             try {
-                reader = new FileReader(file);
-                char[] chars = new char[(int) file.length()];
+                reader = new FileReader(files);
+                char[] chars = new char[(int) files.length()];
                 reader.read(chars);
                 content = new String(chars);
                 reader.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+
+            System.out.println("CANT READ FILE or no file ****************************************************************");
+            //create new one for first time
+            try {
+                if (!files.exists()) {
+                    files.createNewFile();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Log.i("SaveToFile","New file created");
         }
         System.out.println("----------------------------------------------------Failas nuskaitytas--------------------------------------------------------------------------");
         System.out.println(content);
@@ -99,7 +127,7 @@ public class FileSaver {
                 JSONObject jObj = temp.getJSONObject(i);
                 //JSONObject irasasJObj = jObj.getJSONObject("irasas");
                 arrfromFile.put(jObj);
-                Log.i("readFromFile","Success !");
+                Log.i("Read From File","Success !");
 
             }
             System.out.println("kaip atrodo "+arrfromFile );
@@ -108,8 +136,12 @@ public class FileSaver {
 
     public void saveToFile(JSONArray artosave) throws JSONException {
 
+//        failas saugomas /storage/emulated/0/Android/data/Bance.calculations.electricity/files/Documents/Elektros_Skaiciavimai
+
+        System.out.println("*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/ saveToFile*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/ " );
         if(isExternalStorageWritable()){
             try {
+
                 //first option
 //            File file = new File(getFilesDir(), "Studentu_sarasas.json");
 //            file.createNewFile();
@@ -118,10 +150,38 @@ public class FileSaver {
 //            writer.close();
 //            Log.i("Save","Success");
 
+
+                String state = Environment.getExternalStorageState();
+                if (Environment.MEDIA_MOUNTED.equals(state)) {
+                    System.err.println("Permision is give to read******************************** "+state);
+                }
+
+
+//neveikia sitas stulpelis nes pirma skaito, bet is main activity manau veiktu
+//                String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString();
+//                //String root = Environment.getExternalStorageDirectory().toString();
+//                File myDirs = new File(root ); // + "/Elektros_Skaiciavimai"
+//                System.err.println("Permision is give******************************** "+myDirs);
+//                if (!myDirs.exists()) {
+//                    myDirs.mkdirs();
+//                }
+//                sitas neveike nes nera leidimo File files = new File(root  + "/Elektros_Skaiciavimai","records_of_calculations.txt");
+
+                //sitas veike File files = new File(context.getFilesDir()  + "/Elektros_Skaiciavimai","records_of_calculations.txt");
+
+                String path = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).toString() + "/Elektros_Skaiciavimai";
+                File myDir = new File(path);
+                System.out.println("Creating file here******************************** "+myDir);
+                if (!myDir.exists()) {
+                    myDir.mkdirs();
+                    System.err.println("Sukure kataloga ******************************** "+myDir);
+                }
+
+                File files = new File(path,"records_of_calculations.txt");
                 //second option
                 //File file = new File(getFilesDir(), fileName);
                 FileWriter fw;
-                fw = new FileWriter(file);
+                fw = new FileWriter(files);
                 fw.write(String.valueOf(artosave));
                 //fw.write(adapteris);
                 fw.close();
@@ -130,6 +190,8 @@ public class FileSaver {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.err.println(" No Permision to write ************************************************* isExternalStorageWritable()");
         }
     }
 
@@ -143,7 +205,11 @@ public class FileSaver {
     }
 
     public void updateHistory() throws JSONException {
-        readFromFile();
+        try {
+            readFromFile();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         arrfromFile.put(jasonObjToSave);
         saveToFile(arrfromFile);
 

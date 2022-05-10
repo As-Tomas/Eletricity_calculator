@@ -2,9 +2,11 @@ package Bance.calculations.electricity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -25,6 +27,7 @@ public class Istorija extends AppCompatActivity {
 
     ListView l;
     ArrayList<String> forListView = new ArrayList<String>();
+//    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,17 +39,14 @@ public class Istorija extends AppCompatActivity {
         Set<String> forListView2 = preflist.getStringSet("tut", null);
         if(forListView2 == null){
             forListView.add("empty");
-        } else {
-            //konvertuojam kad ListView nuskaitytu
+        }
 
-            File file = new File(getFilesDir(),"record_of_calculations.json");
-            try {
-                FileSaver fileSaver = new FileSaver( file);
-                forListView = new ArrayList(fileSaver.readFile());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
+        //konvertuojam kad ListView nuskaitytu
+        try {
+            FileSaver fileSaver = new FileSaver( this);
+            forListView = new ArrayList(fileSaver.readFile());
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
         Log.i("Kairp atrodo----------", forListView.toString());

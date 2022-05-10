@@ -5,13 +5,18 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.hardware.biometrics.BiometricManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -33,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         //Nuskaitymas is Preferences
         SharedPreferences pref = getSharedPreferences("MyPrefs", MODE_PRIVATE);
@@ -94,9 +100,11 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(view.getContext(), "Nepaejo: "+e, Toast.LENGTH_LONG).show();
                 };
 
+                double sumaRounded = (double) Math.round(suma * 100.0) / 100.0;
+
                 skyrtumasLaukas.setText(""+skyrtumas);
 
-                sumaLaukas.setText("Suma viso: "+suma+" nok");
+                sumaLaukas.setText("Suma viso: "+sumaRounded+" nok");
 
                 //Irasymas
                 SharedPreferences pref = getSharedPreferences("MyPrefs", MODE_PRIVATE);
@@ -145,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 TextView suvartotaKWLaukas = findViewById(R.id.suvartotaKW);
                 String suvartotaKW = suvartotaKWLaukas.getText().toString();
 
+
                 EditText kainaLaukas = findViewById(R.id.kaina);
                 //double kaina = Double.parseDouble(kainaLaukas.getText().toString());
                 String kaina = kainaLaukas.getText().toString();
@@ -152,35 +161,57 @@ public class MainActivity extends AppCompatActivity {
                 TextView sumaLaukas = findViewById(R.id.suma);
                 String suma = sumaLaukas.getText().toString();
 
+
                 boolean tikIstorija = false;
 
-                Intent intent = new Intent(v.getContext(), Istorija.class);
-                //perduodam parametrus
-                intent.putExtra("suvartotaKW",suvartotaKW);
-                intent.putExtra("kaina", kaina);
-                intent.putExtra("suma",suma);
-                intent.putExtra("datenow", dtf.format(datenow));
-                intent.putExtra("tikIstorija", tikIstorija);
 
-                //Irasimas i faila
+                if (Integer.parseInt(suvartotaKW) > 0) {
+                    Intent intent = new Intent(v.getContext(), Istorija.class);
+                    //perduodam parametrus
+                    intent.putExtra("suvartotaKW",suvartotaKW);
+                    intent.putExtra("kaina", kaina);
+                    intent.putExtra("suma",suma);
+                    intent.putExtra("datenow", dtf.format(datenow));
+                    intent.putExtra("tikIstorija", tikIstorija);
 
-                ArrayList<String> arrList = new ArrayList();
-                arrList.add(dtf.format(datenow).toString());
-                arrList.add(String.valueOf(suma));
-                arrList.add(String.valueOf(kaina));
-                arrList.add(String.valueOf(suvartotaKW));
-                arrList.add(String.valueOf(praejusioMenRodmenys));
-                arrList.add(String.valueOf(dabartiniaiRodmenys));
+                    //Irasimas i faila
+                    ArrayList<String> arrList = new ArrayList();
+                    arrList.add(dtf.format(datenow).toString());
+                    arrList.add(String.valueOf(suma));
+                    arrList.add(String.valueOf(kaina));
+                    arrList.add(String.valueOf(suvartotaKW));
+                    arrList.add(String.valueOf(praejusioMenRodmenys));
+                    arrList.add(String.valueOf(dabartiniaiRodmenys));
 
-                File file = new File(getFilesDir(),"record_of_calculations.json");
-                try {
-                    FileSaver fileSaver = new FileSaver("irasas", arrList, file);
-                    fileSaver.updateHistory();
-                    //fileSaver.clearFile();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    if (ContextCompat.checkSelfPermission(
+                            MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+                            PackageManager.PERMISSION_GRANTED) {
+                        // You can use the API that requires the permission.
+                        // performAction(...);
+                        System.err.println("Permision is given*****************************************************************************- WRITE_EXTERNAL_STORAGE TRUE -****************");
+//                        Toast.makeText(v.getContext(), "Permision Nepaejo ", Toast.LENGTH_LONG).show();
+
+                    } else {
+//                        ActivityCompat.requestPermissions(MainActivity.this,
+//                                new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+//                                1);
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                                1);
+                        System.err.println("Asking fo permision******************************************************- false -****************");
+                        Toast.makeText(v.getContext(), "Need permision to save ", Toast.LENGTH_LONG).show();
+                    }
+
+                    try {
+                        System.err.println("assdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd");
+                        FileSaver fileSaver = new FileSaver("irasas", arrList, v.getContext());
+                        fileSaver.updateHistory();
+                        //fileSaver.clearFile();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    startActivity(intent);
                 }
-                startActivity(intent);
             }
         });
 
@@ -193,15 +224,6 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(v.getContext(), Istorija.class);
                 intent.putExtra("tikIstorija", true);
-
-//                File file = new File(getFilesDir(),"record_of_calculations.json");
-//                try {
-//                    FileSaver fileSaver = new FileSaver(file);
-//                    fileSaver.readFromFile();
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-
                 startActivity(intent);
             }
         });
