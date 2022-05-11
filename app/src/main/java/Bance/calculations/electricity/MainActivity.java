@@ -33,6 +33,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    public Float bkkSuma;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +45,13 @@ public class MainActivity extends AppCompatActivity {
         //Nuskaitymas is Preferences
         SharedPreferences pref = getSharedPreferences("MyPrefs", MODE_PRIVATE);
         float suma=pref.getFloat("suma",0);
-        float kaina=pref.getFloat("kaina",0);
+        //float kaina=pref.getFloat("kaina",0);
         int dabartiniaiRodmenys= pref.getInt("dabartiniaiRodmenys",0);
 
         //
         if(suma>=0){
             ((TextView)findViewById(R.id.suma)).setText(suma+"");
-            ((TextView)findViewById(R.id.kaina)).setText(kaina+"");
+            //((TextView)findViewById(R.id.kaina)).setText(kaina+"");
             ((EditText)findViewById(R.id.praejusioMenRodmenys)).setText(dabartiniaiRodmenys+"");
         }
 
@@ -76,20 +78,39 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
+                EditText bkksumaLaukas = findViewById(R.id.bkksuma);
+                float bkksuma =0;
+                try {
+                    bkksuma = Float.parseFloat(bkksumaLaukas.getText().toString());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(view.getContext(), "Neteisingas skaicius: BKK grazinama " +e, Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+
+                EditText visosuvatotakwLaukas = findViewById(R.id.visosuvatotakw);
+                float visosuvatotakw =0;
+                try {
+                    visosuvatotakw= Float.parseFloat(visosuvatotakwLaukas.getText().toString());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(view.getContext(), "Neteisingas sk. Viso suvartota"+ e, Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+
                 TextView skyrtumasLaukas = findViewById(R.id.suvartotaKW);
+                TextView isskaiciuotaLaukas =findViewById(R.id.isskaiciuota);
 
                 EditText kainaLaukas = findViewById(R.id.kaina);
-                //int kaina = Integer.parseInt(kainaLaukas.getText().toString());
                 float kaina =0;
                 try {
                     kaina = Float.parseFloat(kainaLaukas.getText().toString());
                 } catch(NumberFormatException e){
-                    Toast.makeText(view.getContext(), " Neteisingas skaicius " +e, Toast.LENGTH_LONG).show();
+                    Toast.makeText(view.getContext(), " Neteisingas skaicius Kaina " +e, Toast.LENGTH_LONG).show();
                 };
 
                 TextView sumaLaukas = findViewById(R.id.suma);
 
-                //double kanaPerKableli = kaina;
+                //-------------Calculations-------------
+
                 float suma = 0;
                 int skyrtumas =0;
 
@@ -97,8 +118,13 @@ public class MainActivity extends AppCompatActivity {
                     skyrtumas = dabartiniaiRodmenys-praejusioMenRodmenys;
                     suma = skyrtumas*kaina;
                     } catch (Exception e){
-                    Toast.makeText(view.getContext(), "Nepaejo: "+e, Toast.LENGTH_LONG).show();
+                    Toast.makeText(view.getContext(), "skaiciavimas Nepaejo: "+e, Toast.LENGTH_LONG).show();
                 };
+
+                //suma += (bkksuma / visosuvatotakw) * skyrtumas;
+                bkkSuma = (bkksuma / visosuvatotakw) * skyrtumas;
+                suma += bkkSuma;
+                //---------------update activity---------------
 
                 double sumaRounded = (double) Math.round(suma * 100.0) / 100.0;
 
@@ -106,12 +132,19 @@ public class MainActivity extends AppCompatActivity {
 
                 sumaLaukas.setText("Suma viso: "+sumaRounded+" nok");
 
+                if (bkksuma<0){
+                    //there is dicount from BKK
+                    double discount = (double) Math.round(((bkksuma / visosuvatotakw) * skyrtumas) * 100.0) / 100.0;
+                    isskaiciuotaLaukas.setText(""+discount);
+                    Toast.makeText(view.getContext(), "BKK grazina pinigus",Toast.LENGTH_LONG).show();
+                }
+
                 //Irasymas
                 SharedPreferences pref = getSharedPreferences("MyPrefs", MODE_PRIVATE);
 
                 SharedPreferences.Editor editor = pref.edit();
-                editor.putFloat("suma", suma);
-                editor.putFloat("kaina", kaina);
+                editor.putFloat("suma", (float)sumaRounded);
+                //editor.putFloat("kaina", kaina);
                 editor.putInt("dabartiniaiRodmenys",dabartiniaiRodmenys);
                 editor.commit();
 
@@ -173,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("suma",suma);
                     intent.putExtra("datenow", dtf.format(datenow));
                     intent.putExtra("tikIstorija", tikIstorija);
+                    intent.putExtra("bkkSuma",bkkSuma.toString());
 
                     //Irasimas i faila
                     ArrayList<String> arrList = new ArrayList();
@@ -182,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
                     arrList.add(String.valueOf(suvartotaKW));
                     arrList.add(String.valueOf(praejusioMenRodmenys));
                     arrList.add(String.valueOf(dabartiniaiRodmenys));
+                    arrList.add(String.valueOf(bkkSuma));
 
                     if (ContextCompat.checkSelfPermission(
                             MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
@@ -227,6 +262,21 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+//        // delete all history
+//
+//        Button delete =(Button) findViewById(R.id.delete);
+//        delete.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                FileSaver fileSaver = new FileSaver(v.getContext());
+//                try {
+//                    fileSaver.clearFile();
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
 
 
 

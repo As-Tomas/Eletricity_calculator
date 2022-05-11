@@ -47,7 +47,7 @@ public class FileSaver {
         jObj.put("suvartotaKW", arr.get(3));
         jObj.put("praejusioMenRodmenys", arr.get(4));
         jObj.put("dabartinioMenRodmenys", arr.get(5));
-
+        jObj.put("bkkSuma", arr.get(6));
         JSONObject irasas = new JSONObject();
 
         irasas.put("irasas", jObj);
@@ -226,7 +226,8 @@ public class FileSaver {
 
             listOfStrings.add(irasas.getString("data")+ "   " +irasas.getString("suma")+
                     ", kaina: "+irasas.getString("kaina")+", suvartotaKW: "+irasas.getString("suvartotaKW")+
-                    " praejusio menesio rodmenys: "+irasas.getString("praejusioMenRodmenys"));
+                    " praejusio menesio rodmenys: "+irasas.getString("praejusioMenRodmenys")+
+                    " BKK suma: "+irasas.getString("bkkSuma"));
         }
 
         return listOfStrings;

@@ -57,6 +57,7 @@ public class Istorija extends AppCompatActivity {
         String intentKaina = intent.getStringExtra("kaina");
         String intentSuvartotaKW = intent.getStringExtra("suvartotaKW");
         String data = intent.getStringExtra("datenow");
+        String bkkSuma = intent.getStringExtra("bkkSuma");
         boolean tikIstorija = intent.getBooleanExtra("tikIstorija", false);
 
         //sortinam pries atvaizuodami ir reversinam kad nuo naujausiu rodytu
@@ -80,8 +81,8 @@ public class Istorija extends AppCompatActivity {
         } else {
             //forListView.add(data+" SuvartotaKW: "+intentSuvartotaKW+" Kaina: "+intentKaina+" "+intentSuma);
 
-            TextView antraste = findViewById(R.id.istorija);
-            antraste.setText("Si menesi "+intentSuma);
+//            TextView antraste = findViewById(R.id.istorija);
+//            antraste.setText("Si menesi "+intentSuma);
 
             l = findViewById(R.id.list);
             ArrayAdapter<String> arr;

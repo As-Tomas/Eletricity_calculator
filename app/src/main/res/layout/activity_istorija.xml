@@ -5,14 +5,18 @@
     android:layout_margin="10dp"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_weight="3"
         android:text="Skaiciavimu istorija"
         android:textSize="25dp"
         android:textAlignment="center"
         android:background="#DDDDDD"
         android:id="@+id/istorija"/>
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
